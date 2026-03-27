@@ -1,0 +1,35 @@
+import requests
+import json
+import gradio as gr
+
+url = "http://localhost:11434/api/generate"
+headers = {
+    'Content-type': 'application/json'
+}
+history = []
+
+def generate_response(prompt):
+    history.append(prompt)
+    final_prompt = "\n".join(history)
+    data = {
+        "model": "GURU",
+        "prompt": final_prompt,   # Fixed typo: "promt" → "prompt"
+        "stream": False
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        response_text = response.text                  # Renamed to avoid shadowing
+        response_data = json.loads(response_text)      # Renamed to avoid shadowing
+        actual_response = response_data['response']
+        return actual_response
+    else:
+        return f"error: {response.text}"
+
+interface = gr.Interface(
+    fn=generate_response,
+    inputs=gr.Textbox(lines=4, placeholder="Enter your Prompt"),
+    outputs="text",
+    theme=gr.themes.Neon()
+)
+
+interface.launch()
